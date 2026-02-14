@@ -23,7 +23,7 @@ if (!fsSync.existsSync(uploadsDir)) {
 
 // Middleware — CORS restricted to production frontend + localhost dev
 const allowedOrigins = [
-    'https://erosuniverse.netlify.app',
+    'https://celebrated-heliotrope-1bcaaf.netlify.app',
     'http://localhost:3000',
     'http://localhost:5500',
     'http://127.0.0.1:5500'
