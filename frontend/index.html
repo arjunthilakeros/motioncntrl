@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EROS UNIVERSE - Motion Control Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --eros-lime: #84cc16;
+            --eros-lime-glow: #a3e635;
+            --eros-cyan: #06b6d4;
+            --eros-blue: #3b82f6;
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #131316;
+            --bg-tertiary: #1a1a1e;
+            --bg-elevated: #222228;
+            --bg-card: #18181c;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-active: rgba(132, 204, 22, 0.4);
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-elevated);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 80px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 0;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            width: 56px;
+            height: 56px;
+            margin-bottom: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 20px rgba(132, 204, 22, 0.3));
+        }
+
+        .sidebar-logo:hover {
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 30px rgba(132, 204, 22, 0.5));
+        }
+
+        .nav-item {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            margin-top: auto;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .nav-label {
+            position: absolute;
+            left: 56px;
+            background: var(--bg-elevated);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-8px);
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-item:hover .nav-label {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+
+        .top-tabs {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .top-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .top-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .top-tab.active {
+            color: var(--text-primary);
+        }
+
+        .top-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 1rem;
+            right: 1rem;
+            height: 2px;
+            background: var(--eros-lime);
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ===== CENTER PANEL ===== */
+        .center-panel {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* Model Badge */
+        .model-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--eros-lime), var(--eros-cyan));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-icon svg {
+            width: 14px;
+            height: 14px;
+            color: #000;
+        }
+
+        .gradient-lime {
+            background: linear-gradient(135deg, var(--eros-lime), var(--eros-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* Upload Grid */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .upload-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 260px;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-card:hover {
+            border-color: var(--border-active);
+            background: rgba(132, 204, 22, 0.02);
+        }
+
+        .upload-card.has-file {
+            border-color: var(--eros-lime);
+            background: rgba(132, 204, 22, 0.05);
+        }
+
+        .upload-card input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon-wrapper {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .upload-card:hover .upload-icon-wrapper {
+            background: rgba(132, 204, 22, 0.1);
+            transform: scale(1.05);
+        }
+
+        .upload-card.has-file .upload-icon-wrapper {
+            background: rgba(132, 204, 22, 0.15);
+        }
+
+        .upload-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .upload-card:hover .upload-icon svg {
+            color: var(--eros-lime);
+        }
+
+        .upload-card.has-file .upload-icon svg {
+            color: var(--eros-lime);
+        }
+
+        .upload-title {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-btn {
+            padding: 0.375rem 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            pointer-events: none;
+        }
+
+        .upload-card:hover .upload-btn {
+            background: var(--bg-elevated);
+        }
+
+        .upload-file-info {
+            text-align: center;
+            display: none;
+        }
+
+        .upload-card.has-file .upload-file-info {
+            display: block;
+        }
+
+        .upload-card.has-file .upload-title,
+        .upload-card.has-file .upload-actions {
+            display: none;
+        }
+
+        .file-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--eros-lime);
+            margin-bottom: 0.25rem;
+        }
+
+        .file-size {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .file-preview {
+            width: 100%;
+            height: 140px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .upload-card.has-file .file-preview {
+            display: block;
+        }
+
+        .file-preview img,
+        .file-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Info Text */
+        .info-text {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-text a {
+            color: var(--eros-lime);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .info-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Prompt Section */
+        .prompt-section {
+            margin-top: 0.5rem;
+        }
+
+        .prompt-label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .prompt-counter {
+            color: var(--text-muted);
+        }
+
+        .prompt-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            resize: none;
+            height: 80px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: var(--border-active);
+        }
+
+        .prompt-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Options Section */
+        .options-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--border-active);
+            color: var(--text-primary);
+        }
+
+        .option-btn.active {
+            background: rgba(132, 204, 22, 0.1);
+            border-color: var(--eros-lime);
+            color: var(--eros-lime);
+        }
+
+        .option-btn .radio-dot {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .option-btn.active .radio-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            height: 72px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            gap: 1rem;
+        }
+
+        .bottom-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-secondary {
+            padding: 0.625rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .btn-generate {
+            padding: 0.625rem 2.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #000;
+            background: var(--eros-lime);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            background: var(--eros-lime-glow);
+            box-shadow: 0 0 30px rgba(132, 204, 22, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== RIGHT PANEL - STATUS ===== */
+        .right-panel {
+            width: 340px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .right-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--eros-lime);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .right-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .empty-state {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem;
+        }
+
+        .empty-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+
+        .empty-icon svg {
+            width: 100%;
+            height: 100%;
+            color: var(--text-muted);
+        }
+
+        .empty-title {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-desc {
+            font-size: 0.8125rem;
+            line-height: 1.6;
+        }
+
+        /* Task Cards */
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .task-card.active {
+            border-color: var(--border-active);
+            box-shadow: 0 0 20px rgba(132, 204, 22, 0.1);
+        }
+
+        .task-card.success {
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+
+        .task-card.error {
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .task-status {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .task-status.submitted {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--eros-blue);
+        }
+
+        .task-status.processing {
+            background: rgba(132, 204, 22, 0.15);
+            color: var(--eros-lime);
+        }
+
+        .task-status.succeed {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--eros-cyan);
+        }
+
+        .task-status.failed {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .task-preview {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-preview video,
+        .task-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .task-preview-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-preview-placeholder svg {
+            width: 32px;
+            height: 32px;
+            opacity: 0.3;
+            color: var(--text-muted);
+        }
+
+        .task-info {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .task-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .task-info-item svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .btn-task {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-task-primary {
+            background: var(--eros-lime);
+            color: #000;
+        }
+
+        .btn-task-primary:hover {
+            background: var(--eros-lime-glow);
+        }
+
+        .btn-task-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-task-secondary:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 3px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--eros-lime);
+            border-radius: 2px;
+            transition: width 0.3s;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 0.875rem 1.5rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--eros-lime);
+            color: var(--eros-lime);
+        }
+
+        .toast.error {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .right-panel {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+            .right-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <img src="../image-removebg-preview.png" alt="EROS UNIVERSE" class="sidebar-logo">
+        
+        <div class="nav-item" title="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span class="nav-label">Settings</span>
+        </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Top Navigation -->
+        <header class="top-nav">
+            <div class="top-tabs">
+                <div class="top-tab active">Motion Control</div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Center Panel -->
+            <main class="center-panel">
+                <!-- Model Badge -->
+                <div class="model-badge">
+                    <div class="badge-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </div>
+                    <span><span class="gradient-lime">VIDEO 2.6</span> — Copy Any Action, Recreate Every Expression</span>
+                </div>
+
+                <!-- Upload Grid -->
+                <div class="upload-grid">
+                    <!-- Video Upload -->
+                    <div class="upload-card" id="videoCard">
+                        <input type="file" id="videoFile" accept=".mp4,.mov" required>
+                        <div class="upload-icon-wrapper">
+                            <div class="upload-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                                    <line x1="7" y1="2" x2="7" y2="22"></line>
+                                    <line x1="17" y1="2" x2="17" y2="22"></line>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <line x1="2" y1="7" x2="7" y2="7"></line>
+                                    <line x1="2" y1="17" x2="7" y2="17"></line>
+                                    <line x1="17" y1="17" x2="22" y2="17"></line>
+                                    <line x1="17" y1="7" x2="22" y2="7"></line>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="upload-title">Add video of character actions<br>to mimic</div>
+                        <div class="upload-actions">
+                            <span class="upload-btn">History</span>
+                            <span class="upload-btn">Motion Library</span>
+                        </div>
+                        <div class="upload-file-info">
+                            <div class="file-name" id="videoFileName">-</div>
+                            <div class="file-size" id="videoFileSize">-</div>
+                            <div class="file-preview" id="videoPreview"></div>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="upload-card" id="imageCard">
+                        <input type="file" id="imageFile" accept=".jpg,.jpeg,.png" required>
+                        <div class="upload-icon-wrapper">
+                            <div class="upload-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="upload-title">Add character image</div>
+                        <div class="upload-actions">
+                            <span class="upload-btn">History</span>
+                        </div>
+                        <div class="upload-file-info">
+                            <div class="file-name" id="imageFileName">-</div>
+                            <div class="file-size" id="imageFileSize">-</div>
+                            <div class="file-preview" id="imagePreview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Text -->
+                <div class="info-text">
+                    When Character Orientation matches the video, complex motions perform better; when it matches the image, camera movements are better supported. Please upload according to the <a href="#">Upload Guidelines</a>. For more skills, refer to the <a href="#">User Guide</a>.
+                </div>
+
+                <!-- Prompt Section -->
+                <div class="prompt-section">
+                    <div class="prompt-label">
+                        <span>Prompt (Optional)</span>
+                        <span class="prompt-counter"><span id="charCount">0</span>/2500</span>
+                    </div>
+                    <textarea 
+                        id="promptInput" 
+                        class="prompt-input" 
+                        placeholder="Describe motion effects, camera movements, or visual enhancements..."
+                        maxlength="2500"
+                    ></textarea>
+                </div>
+
+                <!-- Options Section -->
+                <div class="options-section">
+                    <!-- Orientation -->
+                    <div class="option-group">
+                        <div class="option-label">Character Orientation</div>
+                        <div class="option-buttons">
+                            <button class="option-btn active" data-orient="video">
+                                <span class="radio-dot"></span>
+                                <span>Matches Video</span>
+                            </button>
+                            <button class="option-btn" data-orient="image">
+                                <span class="radio-dot"></span>
+                                <span>Matches Image</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mode -->
+                    <div class="option-group">
+                        <div class="option-label">Generation Mode</div>
+                        <div class="option-buttons">
+                            <button class="option-btn active" data-mode="std">
+                                <span class="radio-dot"></span>
+                                <span>Standard</span>
+                            </button>
+                            <button class="option-btn" data-mode="pro">
+                                <span class="radio-dot"></span>
+                                <span>Professional</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Audio -->
+                    <div class="option-group">
+                        <div class="option-label">Audio</div>
+                        <div class="option-buttons">
+                            <button class="option-btn active" data-audio="yes">
+                                <span class="radio-dot"></span>
+                                <span>Keep Original Sound</span>
+                            </button>
+                            <button class="option-btn" data-audio="no">
+                                <span class="radio-dot"></span>
+                                <span>Remove Sound</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Panel - Status -->
+            <aside class="right-panel">
+                <div class="right-header">
+                    <span class="right-title">Generation Status</span>
+                    <span class="status-indicator" id="connectionStatus">
+                        <span class="status-dot"></span>
+                        <span>Live</span>
+                    </span>
+                </div>
+                <div class="right-content" id="rightContent">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="empty-title">No active generations</div>
+                        <div class="empty-desc">Upload your video and image, then click Generate to start creating</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Bottom Bar -->
+        <footer class="bottom-bar">
+            <div class="bottom-actions">
+                <button class="btn-secondary" onclick="clearAll()">Clear All</button>
+                <button class="btn-generate" id="generateBtn" onclick="generateVideo()">
+                    <span>Generate</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== CONFIG =====
+        // Change this to your Render backend URL after deploying
+        const API_BASE = 'https://eros-universe-backend.onrender.com';
+
+        // ===== STATE =====
+        let currentTaskId = null;
+        let pollingInterval = null;
+        let tasks = [];
+        let orientation = 'video';
+        let mode = 'std';
+        let audio = 'yes';
+
+        // ===== FILE UPLOADS =====
+        const videoFile = document.getElementById('videoFile');
+        const imageFile = document.getElementById('imageFile');
+        const videoCard = document.getElementById('videoCard');
+        const imageCard = document.getElementById('imageCard');
+
+        videoFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('videoFileName').textContent = file.name;
+                document.getElementById('videoFileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                videoCard.classList.add('has-file');
+
+                const url = URL.createObjectURL(file);
+                document.getElementById('videoPreview').innerHTML = `<video src="${url}" muted loop></video>`;
+            }
+        });
+
+        imageFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('imageFileName').textContent = file.name;
+                document.getElementById('imageFileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                imageCard.classList.add('has-file');
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('imagePreview').innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ===== OPTION BUTTONS =====
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const parent = btn.parentElement;
+                parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (btn.dataset.orient) orientation = btn.dataset.orient;
+                if (btn.dataset.mode) mode = btn.dataset.mode;
+                if (btn.dataset.audio) audio = btn.dataset.audio;
+            });
+        });
+
+        // ===== PROMPT COUNTER =====
+        const promptInput = document.getElementById('promptInput');
+        const charCount = document.getElementById('charCount');
+
+        promptInput.addEventListener('input', () => {
+            charCount.textContent = promptInput.value.length;
+        });
+
+        // ===== TOAST =====
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ===== GENERATE =====
+        async function generateVideo() {
+            if (!videoFile.files[0] || !imageFile.files[0]) {
+                showToast('Please upload both video and image', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Starting...';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', imageFile.files[0]);
+                formData.append('video', videoFile.files[0]);
+                formData.append('prompt', promptInput.value);
+                formData.append('character_orientation', orientation);
+                formData.append('mode', mode);
+                formData.append('keep_original_sound', audio);
+
+                const response = await fetch(`${API_BASE}/api/generate`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentTaskId = result.task_id;
+                    addTask(currentTaskId, result.task_status);
+                    startPolling(currentTaskId);
+                    showToast('Generation started!');
+                } else {
+                    throw new Error(result.message || 'Failed to start generation');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Generate</span>';
+            }
+        }
+
+        // ===== TASK MANAGEMENT =====
+        function addTask(taskId, status) {
+            const task = {
+                id: taskId,
+                status: status,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+            tasks.unshift(task);
+            renderTasks();
+        }
+
+        function updateTask(taskId, data) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = data.task_status;
+                task.data = data;
+                task.updatedAt = new Date();
+                renderTasks();
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('rightContent');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="empty-title">No active generations</div>
+                        <div class="empty-desc">Upload your video and image, then click Generate to start creating</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => {
+                const isActive = task.status === 'processing' || task.status === 'submitted';
+                const isSuccess = task.status === 'succeed';
+                const video = task.data?.task_result?.videos?.[0];
+                
+                return `
+                    <div class="task-card ${isActive ? 'active' : ''} ${isSuccess ? 'success' : ''}" id="task-${task.id}">
+                        <div class="task-header">
+                            <span class="task-id">${task.id.slice(0, 12)}...</span>
+                            <span class="task-status ${task.status}">${task.status}</span>
+                        </div>
+                        
+                        <div class="task-preview">
+                            ${video?.url ? 
+                                `<video src="${video.url}" controls poster="${video.url}?frame=0"></video>` :
+                                `<div class="task-preview-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        ${isActive ? 
+                                            '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>' :
+                                            '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line>'
+                                        }
+                                    </svg>
+                                </div>`
+                            }
+                        </div>
+
+                        ${isActive ? `
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.status === 'submitted' ? '30%' : '70%'}"></div>
+                            </div>
+                        ` : ''}
+
+                        <div class="task-info">
+                            <div class="task-info-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span>${task.updatedAt.toLocaleTimeString()}</span>
+                            </div>
+                            ${task.data?.final_unit_deduction ? `
+                                <div class="task-info-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                    </svg>
+                                    <span>${task.data.final_unit_deduction} credits</span>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${isSuccess && video?.url ? `
+                            <div class="task-actions">
+                                <button class="btn-task btn-task-primary" id="dl-${task.id}" onclick="downloadVideo('${task.id}')">Download</button>
+                                <button class="btn-task btn-task-secondary" onclick="copyLink('${video.url}')">Copy Link</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== POLLING =====
+        function startPolling(taskId) {
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/api/task/${taskId}`);
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        updateTask(taskId, result.data);
+
+                        if (result.data.task_status === 'succeed' || result.data.task_status === 'failed') {
+                            clearInterval(pollingInterval);
+                            pollingInterval = null;
+                            
+                            if (result.data.task_status === 'succeed') {
+                                showToast('Video generation complete!');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 5000);
+        }
+
+        // ===== ACTIONS =====
+        function clearAll() {
+            videoFile.value = '';
+            imageFile.value = '';
+            videoCard.classList.remove('has-file');
+            imageCard.classList.remove('has-file');
+            document.getElementById('videoPreview').innerHTML = '';
+            document.getElementById('imagePreview').innerHTML = '';
+            promptInput.value = '';
+            charCount.textContent = '0';
+            showToast('All fields cleared');
+        }
+
+        async function downloadVideo(taskId) {
+            const btn = document.getElementById(`dl-${taskId}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Processing...';
+            }
+
+            try {
+                showToast('Adding watermark & preparing download...');
+                const response = await fetch(`${API_BASE}/api/download/${taskId}`);
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || 'Download failed');
+                }
+
+                // Get the blob and trigger download
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `eros-universe-${taskId.slice(0, 8)}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('Download started!');
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Download';
+                }
+            }
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url);
+            showToast('Link copied to clipboard');
+        }
+
+        // Handle URL params for existing task
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const taskId = params.get('taskId');
+            if (taskId) {
+                currentTaskId = taskId;
+                addTask(taskId, 'submitted');
+                startPolling(taskId);
+            }
+        });
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (pollingInterval) clearInterval(pollingInterval);
+        });
+    </script>
+</body>
+</html>

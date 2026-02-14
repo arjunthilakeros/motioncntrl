@@ -1,0 +1,35 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+**/.env
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Uploads & temp files
+backend/uploads/
+*.tmp
+
+# Logs
+*.log
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Build outputs
+dist/
+build/
+
+# Claude Code (dev tooling)
+.claude/
+
+# Test assets
+test/
