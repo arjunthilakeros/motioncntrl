@@ -10,6 +10,7 @@ const path = require('path');
 const { execFile } = require('child_process');
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -447,13 +448,13 @@ app.get('/api/download/:taskId', async (req, res) => {
         // Use ffmpeg to overlay logo in top-right corner
         // Logo scaled to ~10% of video width, placed with padding from top-right
         await new Promise((resolve, reject) => {
-            const ffmpegPath = 'ffmpeg';
+            const ffmpegPath = ffmpegInstaller.path;
             const args = [
                 '-y',
                 '-i', tempInput,
                 '-i', LOGO_PATH,
                 '-filter_complex',
-                '[1:v]scale=iw*min(160/iw\\,80/ih):-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.85[logo];[0:v][logo]overlay=W-w-20:20',
+                '[1:v]colorkey=white:0.3:0.2,scale=iw*0.20:-1:flags=lanczos,format=rgba,colorchannelmixer=aa=0.9[logo];[0:v][logo]overlay=W-w-20:H-h-20',
                 '-codec:a', 'copy',
                 '-movflags', '+faststart',
                 tempOutput
